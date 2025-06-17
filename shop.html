@@ -1,0 +1,98 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop | Gurmukh Watch House</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .card {
+      transition: all 0.3s ease-in-out;
+      overflow: hidden;
+    }
+    .card:hover {
+      transform: scale(1.02);
+      height: auto;
+    }
+    .card .details {
+      max-height: 0;
+      opacity: 0;
+      transition: all 0.3s ease-in-out;
+    }
+    .card:hover .details {
+      max-height: 200px;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+  <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold">Gurmukh Watch House</h1>
+    <div class="flex space-x-4">
+        <a href="loggedin.html" class="bg-gray-100 text-blue-600 px-4 py-2 rounded hover:bg-gray-200 font-semibold">Home</a>
+        <a href="cart.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-semibold">Cart</a>
+      </div>      
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-3xl font-bold mb-8 text-center">Explore All Watches</h2>
+    <div id="watch-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+  </main>
+
+  <!-- inside <script> section -->
+<script>
+    function addToCart(watchId, button) {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || !user.id) {
+        alert("Please log in to add items to your cart.");
+        return;
+      }
+  
+      // Prevent duplicate click
+      if (button.disabled) return;
+  
+      fetch("http://localhost:5000/api/cart/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id, watch_id: watchId })
+      })
+      .then(res => res.json())
+      .then(data => {
+        button.textContent = "In Cart";
+        button.classList.remove("bg-blue-600", "hover:bg-blue-700");
+        button.classList.add("bg-green-600", "hover:bg-green-700");
+        button.disabled = true;
+      })
+      .catch(err => {
+        console.error("Add to cart error:", err);
+      });
+    }
+  
+    fetch("http://localhost:5000/api/watches")
+      .then(response => response.json())
+      .then(data => {
+        const grid = document.getElementById("watch-grid");
+        grid.innerHTML = data.map(watch => `
+          <div class="card bg-white rounded-xl shadow hover:shadow-lg transition-all duration-300">
+            <img src="${watch.image}" alt="${watch.name}" class="w-full h-48 object-cover rounded-t-xl">
+            <div class="p-4">
+              <h3 class="text-lg font-semibold mb-1">${watch.name}</h3>
+              <p class="text-blue-600 font-bold">₹${watch.price.toLocaleString()}</p>
+            </div>
+            <div class="details px-4 pb-4">
+              <p class="text-sm text-gray-600 mb-3">${watch.description}</p>
+              <button onclick="addToCart(${watch.id}, this)" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        `).join('');
+      });
+  </script>
+  
+  
+  
+  
+</body>
+</html>

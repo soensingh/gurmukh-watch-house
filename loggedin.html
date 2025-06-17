@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gurmukh Watch House</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      scroll-behavior: smooth;
+    }
+
+    #scroll-container {
+      height: 100vh;
+      width: 100vw;
+      overflow-y: hidden;
+      position: relative;
+    }
+
+    .section {
+      scroll-snap-align: start;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    nav {
+      backdrop-filter: blur(10px);
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+
+    #scroll-container::-webkit-scrollbar {
+      display: none;
+    }
+    #scroll-container {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+    }
+
+    #product-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 1rem;
+      height: calc(100% - 6rem);
+    }
+
+    .product-card-stack {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 0.5rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      background: rgb(229, 231, 235)
+      ;
+    }
+
+    .product-card-stack > div {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      display: flex;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+
+    .product-card-stack > div.active {
+      opacity: 1;
+      z-index: 1;
+    }
+
+    .product-image {
+      width: 40%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 0.5rem;
+    }
+
+    .product-info {
+      width: 60%;
+      padding-left: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .footer{
+      height: auto;
+    }
+
+    .featured-card-stack {
+      position: relative;
+      height: 300px;
+      overflow: hidden;
+    }
+
+    .featured-card-stack > div {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transform: scale(0.95);
+      transition: all 0.6s ease;
+    }
+
+    .featured-card-stack > div.active {
+      opacity: 1;
+      transform: scale(1);
+      z-index: 10;
+    }
+
+    .fade-card {
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    .dropdown:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;    
+    }
+
+  </style>
+</head>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const userMenu = document.getElementById('user-menu');
+      const userButton = document.getElementById('user-button');
+      const dropdown = document.getElementById('dropdown');
+      const logoutLink = document.getElementById('logout');
+  
+      if (user && user.name) {
+        userButton.textContent = user.name;
+        userMenu.classList.remove('hidden');
+  
+        userButton.addEventListener('click', () => {
+          dropdown.classList.toggle('hidden');
+        });
+  
+        logoutLink.addEventListener('click', () => {
+          localStorage.removeItem('user');
+          window.location.href = 'index.html';
+        });
+      }
+    });
+  </script>
+  
+<body class="bg-gray-200 text-gray-800">
+  <!-- Navbar -->
+  <nav class="fixed top-0 w-full z-50 flex items-center justify-between px-6 py-4 shadow-md">
+    <h1 class="text-2xl font-bold">Gurmukh Watch House</h1>
+    <div class="flex items-center space-x-6">
+      <ul class="flex space-x-6 items-center">
+        <li><a href="#hero" class="hover:text-blue-600">Home</a></li>
+        <li><a href="#shop" class="hover:text-blue-600">Shop</a></li>
+        <li><a href="#about" class="hover:text-blue-600">About</a></li>
+        <li><a href="#contact" class="hover:text-blue-600">Contact</a></li>
+      </ul>
+        <!-- USER DROPDOWN MENU (INSIDE NAVBAR) -->
+        <div id="user-menu" class="relative hidden">
+            <div class="dropdown group inline-block relative">
+              <button class="flex items-center bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700 space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5.121 17.804A6.96 6.96 0 0112 15c1.657 0 3.166.672 4.242 1.758M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span id="username">Username</span>
+              </button>
+          
+              <!-- Dropdown content -->
+              <ul class="dropdown-menu absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg opacity-0 invisible transition-all duration-200 z-50">
+                <li><a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Account Settings</a></li>
+                <li><a href="./cart.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Cart</a></li>
+                <li><a href="#" id="logout" class="block px-4 py-2 text-red-600 hover:bg-gray-100">Logout</a></li>
+              </ul>
+            </div>
+          </div>
+          
+  
+  
+  
+    </div>
+  </nav>
+
+  <!-- Scrollable Container -->
+  <div id="scroll-container">
+    <div class="section" id="hero">
+      <section class="relative bg-cover bg-center pt-16 md:pt-20 h-full w-full" style="background-image: url('./assets/main banner.jpg');">
+        <div class="absolute inset-0 bg-black opacity-60"></div>
+        <div class="relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-6">
+          <h2 class="text-4xl md:text-6xl font-bold mb-4">Gurmukh Watch House</h2>
+          <p class="text-lg md:text-xl mb-6 max-w-xl">Discover luxury and style with our premium watch collection.</p>
+          <a href="./shop.html" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded text-white text-lg">Shop Now</a>
+        </div>
+      </section>
+    </div>
+
+    <div class="section" id="shop">
+      <section id="featured" class="py-16 bg-gray-300" style="padding-top: 150px; padding-bottom: 200px;">
+        <div class="container mx-auto px-4">
+          <h2 class="text-3xl font-bold text-center mb-8">Featured Watches</h2>
+          
+          <div id="watch-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 transition-opacity duration-700">
+            <!-- Cards will be injected here -->
+          </div>
+        </div>
+      </section>      
+    </div>
+
+    <div class="section" id="about">
+      <section class="px-6 bg-gray-300 h-full w-full overflow-hidden" style="padding-top: 200px;">
+        <div class="max-w-5xl mx-auto text-center">
+          <h2 class="text-3xl font-bold mb-6">About Us</h2>
+          <p class="text-gray-700 leading-relaxed text-lg mb-4">
+            <strong>Gurmukh Watch House</strong> is more than a destination for luxury timepieces — it is a celebration of craftsmanship, heritage, and timeless style. Founded on a deep-rooted passion for horology, our journey began with a simple belief: every watch tells a story.
+          </p>
+          <p class="text-gray-700 leading-relaxed text-lg mb-4">
+            For over a decade, we’ve been curating exceptional watches that represent the finest in design and engineering. From the classic elegance of Swiss masterpieces to the cutting-edge precision of modern designs, our collection caters to connoisseurs, collectors, and first-time buyers alike.
+          </p>
+          <p class="text-gray-700 leading-relaxed text-lg mb-4">
+            At Gurmukh Watch House, we believe a great watch does more than tell time — it defines it. It marks memories, celebrates achievements, and becomes a companion through life’s journey.
+          </p>
+        </div>
+      
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-5xl mx-auto">
+          <div class="bg-gray-200 p-6 rounded-xl shadow hover:shadow-lg transition duration-300">
+            <div class="text-4xl mb-4 text-blue-600">
+              🛠️
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Expert Craftsmanship</h3>
+            <p class="text-gray-600">Each watch is carefully curated to reflect the highest standards of precision, style, and durability.</p>
+          </div>
+          <div class="bg-gray-200 p-6 rounded-xl shadow hover:shadow-lg transition duration-300">
+            <div class="text-4xl mb-4 text-blue-600">
+              💎
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Premium Selection</h3>
+            <p class="text-gray-600">Discover an exclusive range of luxury watches from world-renowned brands and artisans.</p>
+          </div>
+          <div class="bg-gray-200 p-6 rounded-xl shadow hover:shadow-lg transition duration-300">
+            <div class="text-4xl mb-4 text-blue-600">
+              🤝
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Personalized Service</h3>
+            <p class="text-gray-600">Enjoy expert guidance and unmatched customer support tailored to your preferences and style.</p>
+          </div>
+        </div>
+      </section>
+      
+    </div>
+
+    <div class="section" id="services">
+      <section class="px-6 bg-gray-300 h-full w-full overflow-hidden" style="padding-top: 150px;">
+        <div class="max-w-6xl mx-auto text-center">
+          <h2 class="text-3xl font-bold mb-6">Our Services</h2>
+          <p class="text-gray-700 text-lg mb-8">
+            At Gurmukh Watch House, we take pride in offering more than just exquisite timepieces — we offer an experience built on trust, craftsmanship, and personalized service. Whether you're a collector or a first-time buyer, our services are designed to support and elevate your journey.
+          </p>
+      
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="bg-gray-200 p-6 rounded-xl shadow hover:shadow-lg transition duration-300">
+              <div class="text-4xl mb-4 text-blue-600">🧰</div>
+              <h3 class="text-xl font-semibold mb-2">Watch Repairs & Maintenance</h3>
+              <p class="text-gray-600">From battery replacements to intricate mechanical adjustments, our in-house technicians ensure your watch performs flawlessly.</p>
+            </div>
+            <div class="bg-gray-200 p-6 rounded-xl shadow hover:shadow-lg transition duration-300">
+              <div class="text-4xl mb-4 text-blue-600">🎁</div>
+              <h3 class="text-xl font-semibold mb-2">Luxury Packaging</h3>
+              <p class="text-gray-600">Make your gift unforgettable with our signature luxury packaging and presentation services, perfect for special moments.</p>
+            </div>
+            <div class="bg-gray-200 p-6 rounded-xl shadow hover:shadow-lg transition duration-300">
+              <div class="text-4xl mb-4 text-blue-600">👑</div>
+              <h3 class="text-xl font-semibold mb-2">Exclusive Membership</h3>
+              <p class="text-gray-600">Join our premium club for early access to launches, VIP events, and member-only discounts tailored to enthusiasts.</p>
+            </div>
+      
+            <div class="bg-gray-200 p-6 rounded-xl shadow hover:shadow-lg transition duration-300">
+              <div class="text-4xl mb-4 text-blue-600">🔧</div>
+              <h3 class="text-xl font-semibold mb-2">Customization & Engraving</h3>
+              <p class="text-gray-600">Personalize your timepiece with expert engraving and strap customization to make it truly one-of-a-kind.</p>
+            </div>
+            <div class="bg-gray-200 p-6 rounded-xl shadow hover:shadow-lg transition duration-300">
+              <div class="text-4xl mb-4 text-blue-600">📦</div>
+              <h3 class="text-xl font-semibold mb-2">Worldwide Shipping</h3>
+              <p class="text-gray-600">We ship across the globe with secure packaging and real-time tracking, ensuring your purchase arrives safely and promptly.</p>
+            </div>
+            <div class="bg-gray-200 p-6 rounded-xl shadow hover:shadow-lg transition duration-300">
+              <div class="text-4xl mb-4 text-blue-600">📞</div>
+              <h3 class="text-xl font-semibold mb-2">24/7 Support</h3>
+              <p class="text-gray-600">Have a question or concern? Our expert team is available around the clock to assist you at every step.</p>
+            </div>
+          </div>
+      
+          <p class="text-lg text-gray-700 max-w-3xl mx-auto">
+            With a passion for horology and a dedication to service, Gurmukh Watch House remains your trusted destination for luxury, authenticity, and care. Your satisfaction is our legacy.
+          </p>
+        </div>
+      </section>
+         
+    </div>
+
+    <div class="section" id="contact">
+      <section class="px-6 bg-gray-300 h-full w-full overflow-hidden" style="padding-top: 110px;">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="text-3xl font-bold text-center mb-6">Contact Us</h2>
+          <p class="text-gray-700 text-lg mb-12 text-center max-w-2xl mx-auto">
+            We'd love to hear from you! Whether you have a question about our watches, need help with an order, or just want to say hello — feel free to reach out.
+          </p>
+      
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <!-- Contact Form -->
+            <form class="w-full max-w-3xl bg-gray-200 p-10 rounded-2xl shadow-xl space-y-6">
+              <h2 class="text-3xl font-bold text-gray-800 mb-4 text-center">Contact Us</h2>
+          
+              <div>
+                <label class="block mb-2 text-gray-700 font-semibold">Full Name</label>
+                <input type="text" placeholder="Your full name" required
+                  class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+          
+              <div>
+                <label class="block mb-2 text-gray-700 font-semibold">Email Address</label>
+                <input type="email" placeholder="you@example.com" required
+                  class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+          
+              <div>
+                <label class="block mb-2 text-gray-700 font-semibold">Subject</label>
+                <select
+                  class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option>General Inquiry</option>
+                  <option>Product Support</option>
+                  <option>Business Proposal</option>
+                  <option>Other</option>
+                </select>
+              </div>
+          
+              <div>
+                <label class="block mb-2 text-gray-700 font-semibold">Your Message</label>
+                <textarea rows="3" placeholder="Type your message here..." required
+                  class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+              </div>
+          
+              <div class="text-center">
+                <button type="submit"
+                  class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition duration-300">Send Message</button>
+              </div>
+          
+              <p class="text-green-600 text-sm mt-2 hidden text-center" id="success-message">Your message has been sent successfully!</p>
+            </form>
+
+      
+            <!-- Contact Info -->
+            <div class="bg-gray-200 p-6 rounded-xl shadow-md text-gray-700 space-y-6">
+              <div>
+                <h3 class="text-xl font-semibold mb-2">Visit Us</h3>
+                <p>Gurmukh Watch House<br>123 Heritage Street,<br>Ludhiana, Punjab, India</p>
+              </div>
+              <div>
+                <h3 class="text-xl font-semibold mb-2">Call or Email</h3>
+                <p><strong>Phone:</strong> +91 98765 43210<br><strong>Email:</strong> support@gurmukhwatches.com</p>
+              </div>
+              <div>
+                <h3 class="text-xl font-semibold mb-2">Business Hours</h3>
+                <p>Monday to Saturday: 10:00 AM – 8:00 PM<br>Sunday: Closed</p>
+              </div>
+              <div>
+                <h3 class="text-xl font-semibold mb-6">Find Us</h3>
+                <div class="h-48 w-full bg-gray-200 flex items-center justify-center text-gray-500 rounded">
+                  <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d27199.052166177655!2d75.61605699093606!3d31.554866!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391bab476589bf0d%3A0xe09856e8b33d69b5!2sGurmukh%20Watch%20House!5e0!3m2!1sen!2sin!4v1746025006638!5m2!1sen!2sin" width="600" height="220" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>      
+    </div>
+
+    <div class="section footer">
+      <footer class="bg-gray-900 text-white py-8 h-20 w-full flex items-center justify-center">
+        <p>&copy; 2025 Gurmukh Watch House. All rights reserved.</p>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const scrollContainer = document.getElementById('scroll-container');
+    const sections = document.querySelectorAll('.section');
+    let currentSection = 0;
+    let lastScrollTime = 0;
+    const SCROLL_DELAY = 100; // milliseconds
+
+    function scrollToSection(index) {
+      if (index < 0 || index >= sections.length) return;
+      sections[index].scrollIntoView({ behavior: 'smooth' });
+      currentSection = index;
+      lastScrollTime = Date.now();
+    }
+
+    scrollContainer.addEventListener('wheel', (e) => {
+      const now = Date.now();
+      if (now - lastScrollTime < SCROLL_DELAY) {
+        e.preventDefault();
+        return;
+      }
+
+      e.preventDefault();
+      if (e.deltaY > 0) {
+        scrollToSection(currentSection + 1);
+      } else {
+        scrollToSection(currentSection - 1);
+      }
+    }, { passive: false });
+
+    // Navigation link smooth scroll
+    document.querySelectorAll('nav a[href^="#"]').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute('href'));
+        const index = Array.from(sections).indexOf(target);
+        scrollToSection(index);
+      });
+    });
+
+    const watchGrid = document.getElementById("watch-grid");
+    const totalWatches = 45;
+    const cardCount = 8;
+    const priceRange = [5000, 250000];
+
+    function getRandomPrice() {
+      return `₹${(Math.floor(Math.random() * (priceRange[1] - priceRange[0])) + priceRange[0]).toLocaleString()}`;
+    }
+
+    function getRandomWatchNumber() {
+      return Math.floor(Math.random() * totalWatches) + 1;
+    }
+
+    function createCard(watchNum) {
+      return `
+        <div class="bg-gray-200 rounded-xl shadow-lg overflow-hidden transform transition duration-500 hover:scale-105 fade-card">
+          <img src="./assets/watch${watchNum}.jpg" alt="Watch ${watchNum}" class="w-full h-48 object-cover">
+          <div class="p-4">
+            <h3 class="text-lg font-semibold">Watch ${watchNum}</h3>
+            <p class="text-blue-600 font-bold">${getRandomPrice()}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCards() {
+      const used = new Set();
+      const cards = [];
+
+      while (cards.length < cardCount) {
+        const num = getRandomWatchNumber();
+        if (!used.has(num)) {
+          used.add(num);
+          cards.push(createCard(num));
+        }
+      }
+
+      watchGrid.innerHTML = cards.join("");
+    }
+
+    function fadeUpdate() {
+      watchGrid.classList.add("opacity-0");
+      setTimeout(() => {
+        renderCards();
+        watchGrid.classList.remove("opacity-0");
+      }, 500);
+    }
+
+    // Initial load
+    renderCards();
+
+    // Auto change every 5 seconds
+    setInterval(fadeUpdate, 5000);
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const userMenu = document.getElementById('user-menu');
+      const usernameSpan = document.getElementById('username');
+      const logoutLink = document.getElementById('logout');
+
+      if (user && user.name) {
+        usernameSpan.textContent = user.name;
+        userMenu.classList.remove('hidden');
+
+        logoutLink.addEventListener('click', () => {
+          localStorage.removeItem('user');
+          window.location.href = 'index.html';
+        });
+      }
+    });
+
+    function createCard(watchNum) {
+    return `
+        <a href="shop.html" class="block bg-gray-200 rounded-xl shadow-lg overflow-hidden transform transition duration-500 hover:scale-105 fade-card">
+        <img src="./assets/watch${watchNum}.jpg" alt="Watch ${watchNum}" class="w-full h-48 object-cover">
+        <div class="p-4">
+            <h3 class="text-lg font-semibold">Watch ${watchNum}</h3>
+            <p class="text-blue-600 font-bold">${getRandomPrice()}</p>
+        </div>
+        </a>
+    `;
+    }
+
+
+  </script>
+</body>
+</html>

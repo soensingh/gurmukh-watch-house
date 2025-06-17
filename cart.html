@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Cart | Gurmukh Watch House</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+  <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold">Your Cart</h1>
+    <div class="flex space-x-4">
+      <a href="loggedin.html" class="bg-gray-100 text-blue-600 px-4 py-2 rounded hover:bg-gray-200 font-semibold">Home</a>
+      <a href="shop.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-semibold">Shop More</a>
+    </div>    
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-4 py-10">
+    <div id="cart-container">
+      <h2 class="text-2xl font-bold mb-6">Items in Your Cart</h2>
+      <div id="cart-list" class="space-y-4"></div>
+      <div id="cart-empty" class="text-gray-600 mt-8 hidden">Your cart is empty.</div>
+      <div id="cart-summary" class="mt-10 text-right hidden">
+        <p class="text-xl font-bold mb-4">Total: ₹<span id="total-price">0</span></p>
+        <button onclick="checkout()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 font-semibold">
+          Checkout
+        </button>
+      </div>      
+    </div>
+  </main>
+
+  <script>
+    function loadCart() {
+  const user = JSON.parse(localStorage.getItem('user'));
+  const cartList = document.getElementById("cart-list");
+  const emptyMsg = document.getElementById("cart-empty");
+  const summary = document.getElementById("cart-summary");
+  const totalPriceEl = document.getElementById("total-price");
+
+  if (!user || !user.id) {
+    cartList.innerHTML = "<p>Please log in to view your cart.</p>";
+    emptyMsg.classList.add("hidden");
+    summary.classList.add("hidden");
+    return;
+  }
+
+  fetch(`http://localhost:5000/api/cart/${user.id}`)
+    .then(response => response.json())
+    .then(data => {
+      cartList.innerHTML = "";
+      let total = 0;
+
+      if (!data || data.length === 0) {
+        emptyMsg.classList.remove("hidden");
+        summary.classList.add("hidden");
+        return;
+      }
+
+      emptyMsg.classList.add("hidden");
+      summary.classList.remove("hidden");
+
+      data.forEach(item => {
+        total += item.price * item.quantity;
+
+        const card = document.createElement("div");
+        card.className = "flex items-center bg-white rounded-xl shadow p-4";
+        card.innerHTML = `
+          <img src="${item.image}" alt="${item.name}" class="w-20 h-20 object-cover rounded mr-4">
+          <div class="flex-1">
+            <h3 class="text-lg font-semibold">${item.name}</h3>
+            <p class="text-sm text-gray-500">Price: ₹${item.price.toLocaleString()}</p>
+            <p class="text-sm text-gray-500">Quantity: ${item.quantity}</p>
+          </div>
+          <button class="remove-item bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600" 
+            onclick="removeFromCart(${item.cart_id})">Delete</button>
+        `;
+        cartList.appendChild(card);
+      });
+
+      totalPriceEl.textContent = total.toLocaleString();
+    })
+    .catch(error => {
+      console.error("Error loading cart:", error);
+      cartList.innerHTML = "<p>There was an error loading your cart.</p>";
+      emptyMsg.classList.add("hidden");
+      summary.classList.add("hidden");
+    });
+}
+
+function removeFromCart(cartId) {
+  fetch("http://localhost:5000/api/cart/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cart_id: cartId })
+  })
+  .then(response => response.json())
+  .then(() => loadCart())
+  .catch(err => console.error("Error:", err));
+}
+
+function checkout() {
+  const total = document.getElementById('total-price').textContent.replace(/,/g, '');
+  localStorage.setItem('cartTotal', total);
+  window.location.href = 'checkout.html';
+}
+
+
+document.addEventListener("DOMContentLoaded", loadCart);
+
+  </script>
+  
+</body>
+</html>
